@@ -20,12 +20,15 @@ class RegisterViewController: UIViewController {
     @IBOutlet var passCheck: UIImageView!
     @IBOutlet var confirmPassCheck: UIImageView!
     
+    @IBOutlet var responseLabel: UILabel!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         passCheck.isHidden = true
         confirmPassCheck.isHidden = true
         passwordTextField.addTarget(self, action: #selector(textDidChange), for: UIControl.Event.editingChanged)
         confirmTextField.addTarget(self, action: #selector(textDidChange), for: UIControl.Event.editingChanged)
+        responseLabel.isHidden = true
     }
     
     @objc func textDidChange(_ textField : UITextField){
@@ -54,6 +57,7 @@ class RegisterViewController: UIViewController {
     
     
     @IBAction func registerPressed(_ sender: Any) {
+        responseLabel.isHidden = true
         guard let user = userTextField.text else { return }
         guard let pass = passwordTextField.text else { return }
         guard let confirm = confirmTextField.text  else { return }
@@ -68,12 +72,28 @@ class RegisterViewController: UIViewController {
             print("pass not matching")
             return
         }
+        loader.isHidden = false
+        loader.startAnimating()
+        
         Auth.auth().createUser(withEmail: email, password: pass) { result, error in
             print(result,error)
+            self.loader.isHidden = true
+            self.loader.stopAnimating()
+            if let error = error {
+                print(error)
+                self.responseLabel.text = error.localizedDescription
+                self.responseLabel.isHidden = false
+                return
+            }
+            self.navigate()
         }
     }
     
-   
+   func navigate(){
+          let story = UIStoryboard(name: "Main", bundle: nil)
+          let controller = story.instantiateViewController(identifier: "HomeViewController")
+          navigationController?.pushViewController(controller, animated: true)
+      }
     
   
     
